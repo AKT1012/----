@@ -1,4 +1,5 @@
 import streamlit as st
+import requests
 
 # タイトルと説明の設定
 st.title("レビューチェッカー")
@@ -10,22 +11,29 @@ product_url = st.text_input("商品ページのURLを入力してください:")
 # チェックボタン
 if st.button("サクラをチェック"):
     if product_url:
-        # サクラ検出AIの呼び出し（別途実装）
-        # ここでは仮の結果を表示
         st.write("商品URL:", product_url)
         st.write("レビューを解析中...")
         
-        # 仮のサクラ検出結果
-        import random
-        is_sakura = random.choice([True, False])
+        # レビュー取得のシンプルな例
+        reviews = [
+            "この商品は素晴らしいです！また購入したいです。",
+            "この商品は最悪です。お金の無駄です。",
+        ]
         
-        if is_sakura:
-            st.error("サクラレビューが見つかりました！")
+        # モデルAPIにリクエストを送信
+        response = requests.post('http://localhost:5001/classify', json={'reviews': reviews})
+        
+        if response.status_code == 200:
+            results = response.json()
+            for review, result in zip(reviews, results):
+                if "サクラレビュー" in result:
+                    st.error(f"サクラレビューが見つかりました！: {review}")
+                else:
+                    st.success(f"サクラレビューは見つかりませんでした: {review}")
         else:
-            st.success("サクラレビューは見つかりませんでした。")
+            st.warning("レビューの解析に失敗しました。")
     else:
         st.warning("商品ページのURLを入力してください。")
 
 # フッター
 st.write("このアプリはサクラレビュー検出のためのデモンストレーションです。")
-
